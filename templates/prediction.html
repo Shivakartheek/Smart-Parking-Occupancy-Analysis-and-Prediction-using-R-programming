@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Prediction - Smart Parking{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 fw-bold">Predict Parking Occupancy</h2>
+
+<div class="row g-4">
+  <div class="col-md-5">
+    <div class="card-section">
+      <form id="predictForm">
+        <div class="mb-3">
+          <label class="form-label">Day</label>
+          <select class="form-select" name="day" required>
+            <option value="">Select day</option>
+            <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+            <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Time</label>
+          <input type="time" class="form-control" name="time" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Weather</label>
+          <select class="form-select" name="weather" required>
+            <option value="">Select weather</option>
+            <option>Normal</option><option>Rainy</option><option>Hot</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Event Happening?</label>
+          <select class="form-select" name="event" required>
+            <option value="">Select</option>
+            <option>Yes</option><option>No</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Parking Area</label>
+          <input type="text" class="form-control" name="parking_area" placeholder="e.g. Block A" required>
+          <div class="form-text">Use an area name that already exists in your data (e.g. Block A, Block B, Block C, Main Gate) for the most accurate prediction.</div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Predict</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-md-7">
+    <div id="predictionOutput" class="card-section text-center text-muted">
+      Fill in the form and click Predict to see the result here.
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("predictForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const out = document.getElementById("predictionOutput");
+  out.className = "card-section text-center text-muted";
+  out.innerHTML = "Running R prediction model...";
+
+  const formData = new FormData(e.target);
+  const payload = Object.fromEntries(formData.entries());
+
+  try {
+    const res = await fetchJson("/api/predict", { method: "POST", body: JSON.stringify(payload) });
+    const p = res.prediction;
+
+    out.className = "prediction-result";
+    out.innerHTML = `
+      <div class="mb-2 text-muted">Predicted Occupancy</div>
+      <div class="display-4 fw-bold mb-3">${p.predicted_occupancy}%</div>
+      ${statusBadgeHtml(p.status)}
+      <div class="row mt-4">
+        <div class="col-6">
+          <div class="fw-bold fs-4">${p.total_slots}</div>
+          <div class="text-muted small">Total Slots</div>
+        </div>
+        <div class="col-6">
+          <div class="fw-bold fs-4">${p.predicted_available}</div>
+          <div class="text-muted small">Predicted Available</div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    out.className = "card-section text-center text-danger";
+    out.innerHTML = err.message + " (Is R installed? See README.)";
+  }
+});
+</script>
+{% endblock %}

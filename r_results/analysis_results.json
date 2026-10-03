@@ -1,0 +1,18 @@
+{
+  "overall_stats": {
+    "mean_occupancy": 45.1,
+    "median_occupancy": 42.5,
+    "max_occupancy": 98,
+    "min_occupancy": 5,
+    "sd_occupancy": 24.4,
+    "total_records": 222
+  },
+  "peak_stats": {
+    "peak_hour": "11:00",
+    "lowest_hour": "20:00",
+    "busiest_day": "Monday",
+    "correlation_hour_occupancy": -0.335
+  },
+  "plot_files": ["occupancy_vs_time.png", "occupancy_by_day.png", "area_comparison.png", "event_vs_occupancy.png"],
+  "generated_at": "2026-09-29 15:04:46.931909"
+}

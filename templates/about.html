@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}About - Smart Parking{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 fw-bold">About This Project</h2>
+
+<div class="card-section">
+  <h5>Smart Parking Occupancy Analysis and Prediction System Using R</h5>
+  <p class="text-muted">
+    This is a beginner-friendly full-stack college project built to help a college,
+    office, hospital, or small facility monitor parking occupancy and predict future
+    parking demand.
+  </p>
+
+  <h6 class="mt-4">Problem It Solves</h6>
+  <p>
+    Drivers waste time searching for available parking spaces, while parking managers
+    lack a clear view of peak occupancy periods. This system analyzes parking data,
+    shows the current status on a live dashboard, identifies peak hours and busy days,
+    and predicts future occupancy using a statistical model built in R.
+  </p>
+
+  <h6 class="mt-4">Technology Stack</h6>
+  <ul>
+    <li><strong>Frontend:</strong> HTML, CSS, Bootstrap, JavaScript, Chart.js</li>
+    <li><strong>Backend:</strong> Python (Flask)</li>
+    <li><strong>Data Analysis / ML:</strong> R (dplyr, ggplot2, linear regression)</li>
+    <li><strong>Database:</strong> SQLite</li>
+  </ul>
+
+  <h6 class="mt-4">How It Works</h6>
+  <p>
+    Parking records are stored in an SQLite database. Flask serves the web pages and
+    a small REST API. For deeper statistical analysis and prediction, Flask calls R
+    scripts directly using Python's <code>subprocess</code> module — the R scripts read
+    the same database, compute statistics, generate charts, and (for prediction) train
+    a linear regression model on the fly.
+  </p>
+</div>
+{% endblock %}

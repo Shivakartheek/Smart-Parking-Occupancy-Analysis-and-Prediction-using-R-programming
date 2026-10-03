@@ -1,0 +1,46 @@
+<!-- FILE: templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Smart Parking System{% endblock %}</title>
+
+<!-- Bootstrap for quick, responsive, modern styling -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">🅿️ Smart Parking</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/parking' %}active{% endif %}" href="/parking">Parking Data</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/analytics' %}active{% endif %}" href="/analytics">Analytics</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/prediction' %}active{% endif %}" href="/prediction">Prediction</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="/about">About</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="container py-4">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="text-center text-muted py-4 small">
+  Smart Parking Occupancy Analysis and Prediction System &middot; Built with Flask + R + SQLite
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

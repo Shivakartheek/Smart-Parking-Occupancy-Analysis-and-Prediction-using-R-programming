@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Analytics - Smart Parking{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">Analytics</h2>
+  <button id="runRBtn" class="btn btn-primary">Run R Statistical Analysis</button>
+</div>
+
+<div class="card-section">
+  <div class="row g-3">
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value" id="peakHour">-</div><div class="stat-label">Peak Hour</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value" id="busiestDay">-</div><div class="stat-label">Busiest Day</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value" id="avgOcc">-</div><div class="stat-label">Average Occupancy</div></div></div>
+    <div class="col-md-3"><div class="stat-card"><div class="stat-value" id="maxOcc">-</div><div class="stat-label">Maximum Occupancy</div></div></div>
+  </div>
+  <div id="rStatus" class="text-muted small mt-3"></div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card-section">
+      <h6>Occupancy by Hour</h6>
+      <canvas id="hourChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card-section">
+      <h6>Occupancy by Day</h6>
+      <canvas id="dayChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card-section">
+      <h6>Occupancy by Parking Area</h6>
+      <canvas id="areaChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card-section">
+      <h6>Event vs Non-Event Occupancy</h6>
+      <canvas id="eventChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card-section">
+      <h6>Weather vs Occupancy</h6>
+      <canvas id="weatherChart"></canvas>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card-section">
+      <h6>Available Slots Over Time</h6>
+      <canvas id="availableChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="card-section">
+  <h5 class="mb-3">R-Generated Statistical Charts</h5>
+  <p class="text-muted small">Click "Run R Statistical Analysis" above to generate these using the R scripts in the <code>R/</code> folder.</p>
+  <div id="rCharts" class="row g-3"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const chartColors = ["#2563eb","#16a34a","#f59e0b","#dc2626","#7c3aed","#0891b2","#db2777"];
+
+function barChart(canvasId, labels, values, label) {
+  new Chart(document.getElementById(canvasId), {
+    type: "bar",
+    data: { labels, datasets: [{ label, data: values, backgroundColor: chartColors }] },
+    options: { plugins: { legend: { display: false } } }
+  });
+}
+
+async function loadAnalytics() {
+  const data = await fetchJson("/api/analytics");
+
+  barChart("hourChart", data.by_hour.map(r => r.hour + ":00"), data.by_hour.map(r => r.avg_occ), "Avg Occupancy %");
+  barChart("dayChart", data.by_day.map(r => r.day), data.by_day.map(r => r.avg_occ), "Avg Occupancy %");
+  barChart("areaChart", data.by_area.map(r => r.parking_area), data.by_area.map(r => r.avg_occ), "Avg Occupancy %");
+  barChart("eventChart", data.by_event.map(r => r.event), data.by_event.map(r => r.avg_occ), "Avg Occupancy %");
+  barChart("weatherChart", data.by_weather.map(r => r.weather), data.by_weather.map(r => r.avg_occ), "Avg Occupancy %");
+
+  new Chart(document.getElementById("availableChart"), {
+    type: "line",
+    data: {
+      labels: data.available_over_time.map(r => r.date),
+      datasets: [{ label: "Avg Available Slots", data: data.available_over_time.map(r => r.avg_available), borderColor: "#16a34a", fill: false, tension: 0.3 }]
+    }
+  });
+}
+
+async function runRAnalysis() {
+  const btn = document.getElementById("runRBtn");
+  const statusEl = document.getElementById("rStatus");
+  btn.disabled = true;
+  btn.textContent = "Running R script...";
+  statusEl.textContent = "";
+
+  try {
+    const res = await fetchJson("/api/run-r-analysis", { method: "POST" });
+    const results = res.results;
+
+    document.getElementById("peakHour").textContent = results.peak_stats.peak_hour;
+    document.getElementById("busiestDay").textContent = results.peak_stats.busiest_day;
+    document.getElementById("avgOcc").textContent = results.overall_stats.mean_occupancy + "%";
+    document.getElementById("maxOcc").textContent = results.overall_stats.max_occupancy + "%";
+
+    const rCharts = document.getElementById("rCharts");
+    rCharts.innerHTML = results.plot_files.map(file => `
+      <div class="col-md-6">
+        <img class="chart-img" src="/static/images/${file}?t=${Date.now()}" alt="${file}">
+      </div>
+    `).join("");
+
+    statusEl.textContent = `Last generated: ${results.generated_at}`;
+  } catch (err) {
+    statusEl.innerHTML = `<span class="text-danger">${err.message} (Is R installed? See README.)</span>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Run R Statistical Analysis";
+  }
+}
+
+document.getElementById("runRBtn").addEventListener("click", runRAnalysis);
+loadAnalytics();
+</script>
+{% endblock %}
